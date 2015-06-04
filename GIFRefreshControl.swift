@@ -82,12 +82,19 @@ public class GIFAnimatedImage: NSObject, AnimatedImage {
 ////////////////////////////////////////////////////////////////////////////
 
 private class GIFAnimatedImageView: UIImageView {
-    var animatedImage: AnimatedImage?
+    var animatedImage: AnimatedImage? {
+        didSet {
+            image = animatedImage?[0]
+        }
+    }
     var animating = false
     var lastTimestampChange = CFTimeInterval(0)
 
     lazy var displayLink: CADisplayLink = {
-        return CADisplayLink(target: self, selector: "refreshDisplay")
+        let dl = CADisplayLink(target: self, selector: "refreshDisplay")
+        dl.addToRunLoop(NSRunLoop.mainRunLoop(), forMode: NSRunLoopCommonModes)
+        dl.paused = true
+        return dl
     }()
 
     var index = UInt(0) {
@@ -100,9 +107,7 @@ private class GIFAnimatedImageView: UIImageView {
 
     override func startAnimating() {
         if !animating {
-            displayLink.addToRunLoop(NSRunLoop.mainRunLoop(), forMode: NSRunLoopCommonModes)
             displayLink.paused = false
-
             animating = true
         }
     }
@@ -123,9 +128,7 @@ private class GIFAnimatedImageView: UIImageView {
 
     override func stopAnimating() {
         if animating {
-            displayLink.removeFromRunLoop(NSRunLoop.mainRunLoop(), forMode: NSRunLoopCommonModes)
             displayLink.paused = true
-
             animating = false
         }
     }
@@ -221,6 +224,8 @@ public class GIFRefreshControl: UIControl {
         }
     }
 
+    public var animateOnScroll = true
+
     public var animationDuration = NSTimeInterval(0.33)
 
     public var animationDamping = CGFloat(0.4)
@@ -275,6 +280,7 @@ public class GIFRefreshControl: UIControl {
                 }) { (finished) -> Void in
 
                     self.imageView.stopAnimating()
+                    self.imageView.index = 0
 
             }
         }
@@ -326,7 +332,7 @@ public class GIFRefreshControl: UIControl {
 
             //We cannot do this in the previous if/else because then some frames
             //might not be drawn
-            if !refreshing && superview.contentOffset.y + topInset < 0 {
+            if animateOnScroll && !refreshing && superview.contentOffset.y + topInset < 0 {
                 let percentage = min(1, fabs(height) / expandedHeight)
                 let count = CGFloat(imageView.animatedImage?.frameCount ?? 1) - 1
                 let index = UInt(count * percentage)
