@@ -24,6 +24,10 @@ refreshControl.addTarget(self, action: "refresh", forControlEvents: .ValueChange
 tableView.addSubview(refreshControl)
 ```
 
+### Memory consideration
+
+Right now, the default implementation of `GIFAnimatedImage` is not optimized for memory. That's why you are able to use your custom implementation by using `AnimatedImage` (like [`FLAnimatedImage`](https://github.com/Flipboard/FLAnimatedImage)). `AnimatedImage` is a protocol that describe what is needed to use it in the refresh control.
+
 ## Contributing
 
 1. Fork it!
