@@ -12,7 +12,7 @@ import ImageIO
 // MARK: - AnimatedImage
 ////////////////////////////////////////////////////////////////////////////
 
-public protocol AnimatedImage {
+@objc public protocol AnimatedImage {
     var size: CGSize { get }
     var frameCount: UInt { get }
 
