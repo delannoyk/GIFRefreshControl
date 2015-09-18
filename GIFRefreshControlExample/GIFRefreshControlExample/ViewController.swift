@@ -49,6 +49,6 @@ class ViewController: UIViewController, UITableViewDataSource {
     }
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        return tableView.dequeueReusableCellWithIdentifier("TableViewCell") as! UITableViewCell
+        return tableView.dequeueReusableCellWithIdentifier("TableViewCell")!
     }
 }
