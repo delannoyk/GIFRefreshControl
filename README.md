@@ -1,5 +1,10 @@
 # GIFRefreshControl
 
+[![Build Status](https://travis-ci.org/delannoyk/GIFRefreshControl.svg)](https://travis-ci.org/delannoyk/GIFRefreshControl)
+![Cocoapods Compatible](https://img.shields.io/cocoapods/v/GIFRefreshControl.svg)
+![Platform iOS](https://img.shields.io/badge/platform-iOS-lightgrey.svg)
+[![Contact](https://img.shields.io/badge/contact-%40kdelannoy-blue.svg)](https://twitter.com/kdelannoy)
+
 GIFRefreshControl is a pull to refresh that supports GIF images as track animations.
 
 ![Example 1](example.gif)
