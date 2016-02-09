@@ -18,6 +18,6 @@ script:
   - xcodebuild -project "$PROJECT" -scheme "$SCHEME" -sdk "$SDK" -destination "$DESTINATION" -configuration Debug ONLY_ACTIVE_ARCH=NO build | xcpretty -c;
 notifications:
   slack:
-    secure: NEQe/oeGbSMk15WxHgVVliEYk5+ZhJbmRp+KjhRNQKFuADo5BhMvBg50XmKgTJinsVCARVqqZO1yxWB0SKB/KGC0ijG6Z5mGYnxskYwREh57CBng+MOtMhJxpWVRaYZtyKQDBM9gY+bY+CW46RrwsTlW+3jfqVaCAUDBL4tqu14=
+    secure: LCxy0x+hhk+6DVX9e79WvmB238R8BQFELrG5YGz9H0MCtiSkqEhZASHC0wBJR6keAjaAHZZrUdhR4hw5n1mYAB0qGr0h4xxQqRmPMk+LHVXCCjbMxBkk8RD3/QvyHLw6+aPQNZntX78lvW6bBOt5jJTr7RO3nr+oqFgqY2/K39skQW/CsW1wP+wyoC9C9vmcGZI/1VUKPDJpmKNTgEATfECIU95l7cBIeMp1RDk476ejXdQzM7WkN0W/sMkiom/OOioCKCNPleFYJeXHyOFBCQ7ysUqOCm3hKqFMtuOhlcbRv5hFpFQJGjcO5KUGboSycPElPQJKpMOswQhat67D9nVI/xT4d9wl6JrEb3f6/VPU0fW+JTN9EIoMj9pKyx5hzkCV8KQBA6DQLmDeL8aAREodPogGuv2UINQyK7OKEUua/C+TDtVIAT10JisO6Yq3SUKhLjClqCVdVWb9eKHVMJiCgFIy4e97EQhG+AdGFdQP89T6t31XRUfGGOnvxCQbFcikdxN1sQ6zPfJrwH8x1p0CUyKmzcA+Ud40zIIMlHUWlk6MP6IE1wgU4a7Djl/E6tEM6AcpE/DR5RpJu/KnPELDX4Nh+ogLr/aiQX6jFR3fH+uGm3MuEyKIocHruX4I2C9mY+vthiLnkVSRJLliWFlXDN/O5jMCdg/0J3qDypM=
 after_success:
     bash <(curl -s https://codecov.io/bash);
