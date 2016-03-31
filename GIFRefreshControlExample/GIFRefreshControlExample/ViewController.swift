@@ -21,7 +21,7 @@ class ViewController: UIViewController, UITableViewDataSource {
 
         refreshControl.animatedImage = GIFAnimatedImage(data: NSData(contentsOfURL: NSBundle.mainBundle().URLForResource("giphy", withExtension: "gif")!)!)
         refreshControl.contentMode = .ScaleAspectFill
-        refreshControl.addTarget(self, action: "refresh", forControlEvents: .ValueChanged)
+        refreshControl.addTarget(self, action: #selector(ViewController.refresh), forControlEvents: .ValueChanged)
         tableView.addSubview(refreshControl)
     }
 
@@ -31,7 +31,7 @@ class ViewController: UIViewController, UITableViewDataSource {
     func refresh() {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(1) * Int64(NSEC_PER_SEC)), dispatch_get_main_queue()) { () -> Void in
 
-            self.count++
+            self.count += 1
             self.refreshControl.endRefreshing()
 
             self.tableView.beginUpdates()

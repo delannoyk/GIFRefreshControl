@@ -100,7 +100,7 @@ private class GIFAnimatedImageView: UIImageView {
     var lastTimestampChange = CFTimeInterval(0)
 
     lazy var displayLink: CADisplayLink = {
-        let dl = CADisplayLink(target: self, selector: "refreshDisplay")
+        let dl = CADisplayLink(target: self, selector: #selector(GIFAnimatedImageView.refreshDisplay))
         dl.addToRunLoop(NSRunLoop.mainRunLoop(), forMode: NSRunLoopCommonModes)
         dl.paused = true
         return dl
