@@ -16,7 +16,7 @@ import ImageIO
     var size: CGSize { get }
     var frameCount: UInt { get }
 
-    func frameDurationForImageAtIndex(index: UInt) -> NSTimeInterval
+    func frameDurationForImage(at index: UInt) -> TimeInterval
 
     subscript(index: UInt) -> UIImage { get }
 }
@@ -28,8 +28,8 @@ import ImageIO
 ////////////////////////////////////////////////////////////////////////////
 
 public class GIFAnimatedImage: NSObject, AnimatedImage {
-    private typealias ImageInfo = (image: UIImage, duration: NSTimeInterval)
-    private let images: [ImageInfo]
+    fileprivate typealias ImageInfo = (image: UIImage, duration: TimeInterval)
+    fileprivate let images: [ImageInfo]
 
     public let size: CGSize
 
@@ -37,45 +37,43 @@ public class GIFAnimatedImage: NSObject, AnimatedImage {
         return UInt(images.count)
     }
 
-    public init?(data: NSData) {
-        if let source = CGImageSourceCreateWithData(data, nil) {
-            let count = CGImageSourceGetCount(source)
-
-            images = (0..<count).map { i -> ImageInfo in
-                if let image = CGImageSourceCreateImageAtIndex(source, i, nil) {
-                    let duration: NSTimeInterval = {
-                        let info = CGImageSourceCopyPropertiesAtIndex(source, i, nil)
-                        let gifInfo = unsafeBitCast(CFDictionaryGetValue(info, unsafeAddressOf(kCGImagePropertyGIFDictionary)), CFDictionary.self)
-
-                        var delay = unsafeBitCast(CFDictionaryGetValue(gifInfo, unsafeAddressOf(kCGImagePropertyGIFUnclampedDelayTime)), NSNumber.self)
-                        if delay.doubleValue <= 0 {
-                            delay = unsafeBitCast(CFDictionaryGetValue(gifInfo, unsafeAddressOf(kCGImagePropertyGIFDelayTime)), NSNumber.self)
-                        }
-
-                        return delay.doubleValue
-                    }()
-                    return (UIImage(CGImage: image), duration)
-                }
-                return (UIImage(), 0)
-            }
-
-            if let image = images.first {
-                size = image.image.size
-            }
-            else {
-                size = CGSize(width: 0, height: 100)
-            }
-            super.init()
-        }
-        else {
+    public init?(data: Data) {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
             images = []
             size = .zero
             super.init()
             return nil
         }
+
+        let count = CGImageSourceGetCount(source)
+
+        images = (0..<count).map { i -> ImageInfo in
+            guard let image = CGImageSourceCreateImageAtIndex(source, i, nil) else {
+                return (UIImage(), 0)
+            }
+
+            let duration: TimeInterval = {
+                let info = CGImageSourceCopyPropertiesAtIndex(source, i, nil)
+                let gifInfo = unsafeBitCast(CFDictionaryGetValue(info, Unmanaged.passUnretained(kCGImagePropertyGIFDictionary).toOpaque()), to: CFDictionary.self)
+
+                var delay = unsafeBitCast(CFDictionaryGetValue(gifInfo, Unmanaged.passUnretained(kCGImagePropertyGIFUnclampedDelayTime).toOpaque()), to: NSNumber.self)
+                if delay.doubleValue <= 0 {
+                    delay = unsafeBitCast(CFDictionaryGetValue(gifInfo, Unmanaged.passUnretained(kCGImagePropertyGIFDelayTime).toOpaque()), to: NSNumber.self)
+                }
+                return delay.doubleValue
+            }()
+            return (UIImage(cgImage: image), duration)
+        }
+
+        if let image = images.first {
+            size = image.image.size
+        } else {
+            size = CGSize(width: 0, height: 100)
+        }
+        super.init()
     }
 
-    public func frameDurationForImageAtIndex(index: UInt) -> NSTimeInterval {
+    public func frameDurationForImage(at index: UInt) -> TimeInterval {
         return images[Int(index)].duration
     }
 
@@ -96,13 +94,13 @@ private class GIFAnimatedImageView: UIImageView {
             image = animatedImage?[0]
         }
     }
-    var animating = false
+    var animated = false
     var lastTimestampChange = CFTimeInterval(0)
 
     lazy var displayLink: CADisplayLink = {
         let dl = CADisplayLink(target: self, selector: #selector(GIFAnimatedImageView.refreshDisplay))
-        dl.addToRunLoop(NSRunLoop.mainRunLoop(), forMode: NSRunLoopCommonModes)
-        dl.paused = true
+        dl.add(to: .main, forMode: .commonModes)
+        dl.isPaused = true
         return dl
     }()
 
@@ -115,16 +113,16 @@ private class GIFAnimatedImageView: UIImageView {
     }
 
     override func startAnimating() {
-        if !animating {
-            displayLink.paused = false
-            animating = true
+        if !animated {
+            displayLink.isPaused = false
+            animated = true
         }
     }
 
     @objc func refreshDisplay() {
-        if animating {
+        if animated {
             if let animatedImage = animatedImage {
-                let currentFrameDuration = animatedImage.frameDurationForImageAtIndex(index)
+                let currentFrameDuration = animatedImage.frameDurationForImage(at: index)
                 let delta = displayLink.timestamp - lastTimestampChange
 
                 if delta >= currentFrameDuration {
@@ -136,9 +134,9 @@ private class GIFAnimatedImageView: UIImageView {
     }
 
     override func stopAnimating() {
-        if animating {
-            displayLink.paused = true
-            animating = false
+        if animated {
+            displayLink.isPaused = true
+            animated = false
         }
     }
 }
@@ -178,7 +176,7 @@ public class GIFRefreshControl: UIControl {
     private func commonInit() {
         imageView.frame = bounds
         imageView.clipsToBounds = true
-        imageView.autoresizingMask = [.FlexibleHeight, .FlexibleWidth]
+        imageView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         addSubview(imageView)
     }
 
@@ -195,16 +193,16 @@ public class GIFRefreshControl: UIControl {
     // MARK: Superview handling
     ////////////////////////////////////////////////////////////////////////////
 
-    public override func willMoveToSuperview(newSuperview: UIView?) {
+    public override func willMove(toSuperview newSuperview: UIView?) {
         if let superview = superview as? UIScrollView {
             superview.removeObserver(self, forKeyPath: "contentOffset")
         }
-        super.willMoveToSuperview(newSuperview)
+        super.willMove(toSuperview: newSuperview)
     }
 
     public override func didMoveToSuperview() {
         if let superview = superview as? UIScrollView {
-            superview.addObserver(self, forKeyPath: "contentOffset", options: [.New, .Old], context: nil)
+            superview.addObserver(self, forKeyPath: "contentOffset", options: [.new, .old], context: nil)
         }
         super.didMoveToSuperview()
     }
@@ -235,7 +233,7 @@ public class GIFRefreshControl: UIControl {
 
     public var animateOnScroll = true
 
-    public var animationDuration = NSTimeInterval(0.33)
+    public var animationDuration = TimeInterval(0.33)
 
     public var animationDamping = CGFloat(0.4)
 
@@ -248,7 +246,7 @@ public class GIFRefreshControl: UIControl {
     ////////////////////////////////////////////////////////////////////////////
 
     public func beginRefreshing() {
-        if let superview = superview as? UIScrollView where !refreshing {
+        if let superview = superview as? UIScrollView, !refreshing {
             refreshing = true
 
             //Saving inset
@@ -270,15 +268,15 @@ public class GIFRefreshControl: UIControl {
     }
 
     public func endRefreshing() {
-        if let superview = superview as? UIScrollView where refreshing {
+        if let superview = superview as? UIScrollView, refreshing {
             forbidsOffsetChanges = false
             refreshing = false
 
-            UIView.animateWithDuration(animationDuration,
+            UIView.animate(withDuration: animationDuration,
                 delay: 0,
                 usingSpringWithDamping: animationDamping,
                 initialSpringVelocity: animationVelocity,
-                options: UIViewAnimationOptions.CurveLinear,
+                options: UIViewAnimationOptions.curveLinear,
                 animations: { () -> Void in
 
                     if let contentInset = self.contentInset {
@@ -301,7 +299,7 @@ public class GIFRefreshControl: UIControl {
     // MARK: KVO
     ////////////////////////////////////////////////////////////////////////////
 
-    public override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+    public override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if !changingInset {
             adaptShift()
         }
@@ -314,7 +312,7 @@ public class GIFRefreshControl: UIControl {
     ////////////////////////////////////////////////////////////////////////////
 
     private var expandedHeight: CGFloat {
-        let maxHeight = UIScreen.mainScreen().bounds.height / 5
+        let maxHeight = UIScreen.main.bounds.height / 5
         let height = imageView.animatedImage?.size.height
         return min(maxHeight, height ?? maxHeight)
     }
@@ -348,9 +346,9 @@ public class GIFRefreshControl: UIControl {
                 imageView.index = index
             }
 
-            if !superview.dragging && superview.decelerating && !forbidsOffsetChanges && forbidsInsetChanges {
+            if !superview.isDragging && superview.isDecelerating && !forbidsOffsetChanges && forbidsInsetChanges {
                 imageView.startAnimating()
-                sendActionsForControlEvents(.ValueChanged)
+                sendActions(for: .valueChanged)
 
                 beginRefreshing()
             }
