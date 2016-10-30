@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = 'GIFRefreshControl'
-  s.version      = '1.3.0'
+  s.version      = '1.4.0'
   s.license      =  { :type => 'MIT' }
   s.homepage     = 'https://github.com/delannoyk/GIFRefreshControl'
   s.authors      = {
