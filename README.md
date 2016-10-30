@@ -19,13 +19,13 @@ You have multiple choices here:
 
 ## Usage
 ```swift
-let URL = NSBundle.mainBundle().URLForResource("giphy", withExtension: "gif")
-let data = NSData(contentsOfURL: URL!)
+let url = Bundle.main.url(forResource: "giphy", withExtension: "gif")
+let data = Data(contentsOf: url!)
 
 let refreshControl = GIFRefreshControl()
 refreshControl.animatedImage = GIFAnimatedImage(data: data!)
-refreshControl.contentMode = .ScaleAspectFill
-refreshControl.addTarget(self, action: "refresh", forControlEvents: .ValueChanged)
+refreshControl.contentMode = .scaleAspectFill
+refreshControl.addTarget(self, action: #selector(ViewController.refresh(_:)), for: .valueChanged)
 tableView.addSubview(refreshControl)
 ```
 
